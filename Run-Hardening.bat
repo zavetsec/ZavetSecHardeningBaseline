@@ -127,18 +127,27 @@ goto MENU
 cls
 echo.
 echo  [>>] ROLLBACK - restores settings from backup file
-echo  [..] Backup files are in: %REPORT_DIR%
+echo  [..] Searching for backups in:
+echo       %REPORT_DIR%  (via launcher)
+echo       %SCRIPT_DIR%  (via PowerShell direct)
 echo.
 
-:: Build numbered list of backup files
+:: Build numbered list of backup files (search Reports\ AND script root dir)
 set "IDX=0"
 for %%F in ("%REPORT_DIR%\HardeningBackup_*.json") do (
     set /a IDX+=1
     set "BACKUP_!IDX!=%%~fF"
-    echo   [!IDX!]  %%~nxF
+    echo   [!IDX!]  %%~nxF  [Reports\]
+)
+for %%F in ("%SCRIPT_DIR%HardeningBackup_*.json") do (
+    set /a IDX+=1
+    set "BACKUP_!IDX!=%%~fF"
+    echo   [!IDX!]  %%~nxF  [script dir]
 )
 if %IDX%==0 (
-    echo  [!!] No backup files found in: %REPORT_DIR%
+    echo  [!!] No backup files found in:
+    echo       %REPORT_DIR%
+    echo       %SCRIPT_DIR%
     echo.
     pause & goto MENU
 )
