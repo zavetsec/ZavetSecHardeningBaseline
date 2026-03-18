@@ -278,6 +278,29 @@ Day 30   Re-run Audit across all machines.
 
 ---
 
+## `>_ antivirus exclusions`
+
+> ⚠️ **Add both files to your AV/EDR exclusion list before running.**
+
+Hardening scripts are routinely flagged by antivirus and EDR solutions — not
+because they are malicious, but because their actions resemble attacker
+behaviour: modifying registry keys, disabling services, calling `auditpol.exe`,
+and executing `.bat` + `.ps1` in sequence. This is expected and does not
+indicate a problem with the tool.
+
+Add to exclusions before running:
+
+```
+ZavetSecHardeningBaseline.ps1
+Run-Hardening.bat
+```
+
+Or exclude the entire folder containing the scripts. If a file was already
+quarantined — restore it first, then add the exclusion, then re-run. Both
+files are fully open-source and can be reviewed before adding exclusions.
+
+---
+
 ## `>_ disclaimer`
 
 > This script modifies security-relevant system settings. Always run Audit
