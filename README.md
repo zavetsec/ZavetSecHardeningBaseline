@@ -128,9 +128,9 @@ Every run produces a dark-themed, filterable HTML report:
 
 Hand it to a customer. Attach it to a change management record. Run it before/after to show delta.
 
-> 📸 **Screenshot:** run Audit mode, take a screenshot of the HTML report, save as `docs/report_preview.png` and uncomment the line below.
+> 📸 **Screenshot:**
 
-<!-- ![HTML compliance report](docs/report_preview.png) -->
+<img width="1443" height="771" alt="image" src="https://github.com/user-attachments/assets/53a22b0a-7446-4d6c-a336-4272f34bb403" />
 
 ---
 
