@@ -14,10 +14,15 @@
 [![CIS](https://img.shields.io/badge/Standard-CIS%20%7C%20DISA%20STIG%20%7C%20MS%20Baseline-00b4d8?style=flat-square)](https://cisecurity.org)
 [![License](https://img.shields.io/badge/License-MIT-30d158?style=flat-square)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0-ff6b00?style=flat-square)](#)
+[![Stars](https://img.shields.io/github/stars/zavetsec/ZavetSecHardeningBaseline?style=flat-square)](https://github.com/zavetsec/ZavetSecHardeningBaseline/stargazers)
 
 *One script. 60+ checks. Three modes. Zero bloat.*
 
 </div>
+
+---
+
+> **TL;DR** — **Audit in 30 seconds. Harden in 60. Rollback anytime.** Zero dependencies, no AD required. Output: a filterable HTML report with compliance score, per-check MITRE tags, and remediation commands.
 
 ---
 
@@ -26,7 +31,7 @@
 Most Windows environments ship with settings that are actively dangerous:
 LLMNR broadcasting credentials to anyone who asks, WDigest storing plaintext
 passwords in memory, SMBv1 waiting for EternalBlue, audit logs sized at 20 MB
-that fill in hours. These are not edge cases — they are defaults.
+that fill in hours. These are not edge cases — **they are defaults.**
 
 `ZavetSecHardeningBaseline` fixes this. It audits your current state, applies
 a hardened baseline aligned to **CIS Benchmark**, **DISA STIG**, and
@@ -60,24 +65,6 @@ backup created before every change.
 **Non-destructive** — JSON backup before every change, full rollback available.  
 **Locale-independent** — audit policy uses GUIDs, works on any Windows language.  
 **PsExec-compatible** — `-NonInteractive` flag for remote/automated deployment.
-
----
-
-## `>_ why this, not that`
-
-| | ZavetSecHardeningBaseline | CIS CAT Pro | LGPO.exe | MS Security Baseline (GPO) |
-|---|---|---|---|---|
-| **Rollback** | ✅ JSON backup | ❌ | manual GPO restore | partial |
-| **HTML report** | ✅ per-check, MITRE | ✅ | ❌ | ❌ |
-| **No dependencies** | ✅ PS 5.1 only | ❌ Java required | ✅ | ❌ AD/DC required |
-| **Offline** | ✅ | ❌ | ✅ | ✅ |
-| **Audit-only mode** | ✅ | ✅ | ❌ | ❌ |
-| **Selective apply** | ✅ skip flags | ❌ | ❌ | ❌ |
-| **PsExec / automation** | ✅ `-NonInteractive` | ❌ | partial | partial |
-
-The main difference: most alternatives either change the system with no easy
-undo, require infrastructure (AD, Java, internet), or produce no report.
-This tool is built to be reversible, reportable, and runnable anywhere.
 
 ---
 
@@ -139,37 +126,29 @@ Every run produces a dark-themed, filterable HTML report:
 - Filter by: FAIL only · CRITICAL · HIGH · category
 - Backup path and rollback command pre-filled at the bottom
 
-> 📸 *Screenshot coming in v1.1 — run Audit mode locally to see the report.*
+Hand it to a customer. Attach it to a change management record. Run it before/after to show delta.
 
-Reports save to `.\Reports\` via the BAT launcher, or script directory when
-running PowerShell directly (override with `-OutputPath`).
+> 📸 **Screenshot:** run Audit mode, take a screenshot of the HTML report, save as `docs/report_preview.png` and uncomment the line below.
+
+<!-- ![HTML compliance report](docs/report_preview.png) -->
 
 ---
 
-## `>_ safe to run — read this first`
+## `>_ why this, not that`
 
-> ⚠️ **Test in a non-production environment before deploying at scale.**
+| | ZavetSecHardeningBaseline | CIS CAT Pro | LGPO.exe | MS Security Baseline (GPO) |
+|---|---|---|---|---|
+| **Rollback** | ✅ JSON backup | ❌ | manual GPO restore | partial |
+| **HTML report** | ✅ per-check, MITRE | ✅ | ❌ | ❌ |
+| **No dependencies** | ✅ PS 5.1 only | ❌ Java required | ✅ | ❌ AD/DC required |
+| **Offline** | ✅ | ❌ | ✅ | ✅ |
+| **Audit-only mode** | ✅ | ✅ | ❌ | ❌ |
+| **Selective apply** | ✅ skip flags | ❌ | ❌ | ❌ |
+| **PsExec / automation** | ✅ `-NonInteractive` | ❌ | partial | partial |
 
-**What may break:**
-
-- **SMBv1 disable** — legacy devices that only speak SMBv1 (old printers, NAS,
-  XP/2003) lose network access. Run `Get-SmbConnection` first to identify them.
-- **SMB signing required** — clients without signing support are rejected.
-  Negligible in modern environments, check in legacy/mixed estates.
-- **Credential Guard** — requires UEFI + Secure Boot + VBS hardware.
-  Skipped gracefully on incompatible machines.
-- **NTLMv2 only** — systems that only support LM/NTLMv1 fail authentication.
-  Rare in IT, more common in OT/industrial environments.
-- **Print Spooler** (`-EnablePrintSpoolerDisable`) — printing stops entirely.
-  Apply only to non-printing machines.
-- **PSv2 disable** — requires reboot. Automation calling `powershell -version 2`
-  will break.
-
-**Reboot required for:** Credential Guard · DEP AlwaysOn · PSv2 disable · SMBv1 client driver.
-
-**Runtime:** Audit completes in ~10–30 seconds. Apply runs in ~20–60 seconds
-on a modern workstation — most of that is the 27 `auditpol` subcategory calls.
-Tested via PsExec fan-out on lab fleet without issues.
+The main difference: most alternatives either change the system with no easy
+undo, require infrastructure (AD, Java, internet), or produce no report.
+This tool is built to be **reversible, reportable, and runnable anywhere.**
 
 ---
 
@@ -190,8 +169,7 @@ Right-click `Run-Hardening.bat` → **Run as administrator.**
    [4]  EXIT
 ```
 
-Creates `Reports\` automatically. ROLLBACK lists backups by number — no path
-entry required.
+Creates `Reports\` automatically. ROLLBACK lists backups by number — no path entry required.
 
 ### Option B — PowerShell directly
 
@@ -227,24 +205,71 @@ psexec \\TARGET -s -c .\ZavetSecHardeningBaseline.ps1 -Mode Apply -NonInteractiv
 
 ---
 
+## `>_ safe to run — read this first`
+
+> ⚠️ **Always run Audit first. Test Apply in a non-production VM before deploying at scale.**
+
+**What may break:**
+
+- **SMBv1 disable** — legacy devices that only speak SMBv1 (old printers, NAS, XP/2003) lose network access. Run `Get-SmbConnection` first to identify them.
+- **SMB signing required** — clients without signing support are rejected. Negligible in modern environments, check in legacy/mixed estates.
+- **Credential Guard** — requires UEFI + Secure Boot + VBS hardware. Skipped gracefully on incompatible machines.
+- **NTLMv2 only** — systems that only support LM/NTLMv1 fail authentication. Rare in IT, more common in OT/industrial environments.
+- **Print Spooler** (`-EnablePrintSpoolerDisable`) — printing stops entirely. Apply only to non-printing machines.
+- **PSv2 disable** — requires reboot. Automation calling `powershell -version 2` will break.
+
+**Reboot required for:** Credential Guard · DEP AlwaysOn · PSv2 disable · SMBv1 client driver.
+
+**Runtime:** Audit ~10–30 seconds. Apply ~20–60 seconds — most of that is the 27 `auditpol` subcategory calls. Tested via PsExec fan-out on lab fleet without issues.
+
+---
+
 ## `>_ deployment timeline`
 
 ```
-Day 0    Audit on a representative sample.
-         Review the HTML report. Identify legacy dependencies
-         (SMBv1 devices, NTLMv1 systems, old automation scripts).
+Day 0     Audit on a representative sample.
+          Review the HTML report. Identify legacy dependencies
+          (SMBv1 devices, NTLMv1 systems, old automation scripts).
 
-Day 1–7  Fix dependencies. Test Apply in a lab VM.
-         Confirm rollback works from the generated backup.
+Day 1–7   Fix dependencies. Test Apply in a lab VM.
+          Confirm rollback works from the generated backup.
 
-Day 7    Apply to a pilot group (5–10 machines).
-         Monitor for 48 hours. Check application behaviour and helpdesk.
+Day 7     Apply to a pilot group (5–10 machines).
+          Monitor for 48 hours. Check application behaviour and helpdesk.
 
-Day 14+  Roll out in batches. Reboot machines that require it.
+Day 14+   Roll out in batches. Reboot machines that require it.
 
-Day 30   Re-run Audit across all machines.
-         Compare compliance % before and after.
-         Attach the HTML report to the change management record.
+Day 30    Re-run Audit across all machines.
+          Compare compliance % before and after.
+          Attach the HTML report to the change management record.
+```
+
+---
+
+## `>_ emergency reset`
+
+If hardening caused critical issues and the JSON backup is unavailable, use the
+companion script to reset all settings back to Windows out-of-box defaults:
+
+```powershell
+.\ZavetSecWindowsDefaults.ps1
+
+# Silent — for remote recovery
+.\ZavetSecWindowsDefaults.ps1 -NonInteractive
+```
+
+**Decision tree:**
+
+```
+Something broke after Apply
+        │
+        ├─ JSON backup exists?
+        │       YES → .\ZavetSecHardeningBaseline.ps1 -Mode Rollback -BackupPath <path>
+        │                    (precise restore of your exact prior values)
+        │
+        └─ No backup / hardened by another tool?
+                YES → .\ZavetSecWindowsDefaults.ps1
+                             (full reset to clean Windows defaults)
 ```
 
 ---
@@ -282,11 +307,10 @@ Day 30   Re-run Audit across all machines.
 
 > ⚠️ **Add both files to your AV/EDR exclusion list before running.**
 
-Hardening scripts are routinely flagged by antivirus and EDR solutions — not
-because they are malicious, but because their actions resemble attacker
-behaviour: modifying registry keys, disabling services, calling `auditpol.exe`,
-and executing `.bat` + `.ps1` in sequence. This is expected and does not
-indicate a problem with the tool.
+Hardening scripts are routinely flagged — not because they are malicious, but
+because their actions resemble attacker behaviour: modifying registry keys,
+disabling services, calling `auditpol.exe`, executing `.bat` + `.ps1` in
+sequence. This is expected and does not indicate a problem with the tool.
 
 Add to exclusions before running:
 
@@ -295,46 +319,22 @@ ZavetSecHardeningBaseline.ps1
 Run-Hardening.bat
 ```
 
-Or exclude the entire folder containing the scripts. If a file was already
-quarantined — restore it first, then add the exclusion, then re-run. Both
-files are fully open-source and can be reviewed before adding exclusions.
+Both files are fully open-source. Review before adding exclusions.
 
 ---
 
-## `>_ emergency reset`
+## `>_ part of the ZavetSec DFIR toolkit`
 
-If hardening caused critical issues and the JSON backup is unavailable or was
-never created, use the companion script to reset all settings back to Windows
-out-of-box defaults:
+Designed for live incident response and rapid hardening engagements. Each tool
+is independent — use any one standalone, or chain them as a pipeline.
 
-```powershell
-.\ZavetSecWindowsDefaults.ps1
+| Tool | What it does |
+|---|---|
+| **[Invoke-ZavetSecTriage](https://github.com/zavetsec/Invoke-ZavetSecTriage)** | Live artifact collection — 18 modules, MITRE-tagged findings, HTML report |
+| **[Invoke-MBHashCheck](https://github.com/zavetsec/Invoke-MBHashCheck)** | Bulk hash triage — MalwareBazaar + ThreatFox C2 enrichment + GeoIP |
+| **ZavetSecHardeningBaseline** | 60+ hardening checks — CIS/STIG aligned, JSON rollback, compliance report |
 
-# Or silent, for remote recovery
-.\ZavetSecWindowsDefaults.ps1 -NonInteractive
-```
-
-This script does not require a backup file — it resets every setting touched
-by `ZavetSecHardeningBaseline` to documented Windows defaults: re-enables
-LLMNR, SMBv1, NBT-NS, removes LSA PPL and Credential Guard policy keys, resets
-all 27 audit subcategories to No Auditing, restores Event Log sizes, and so on.
-
-> ⚠️ A reboot is required after reset for SMBv1 client driver, PSv2,
-> DEP OptIn, and Credential Guard removal to take full effect.
-
-**Decision tree:**
-
-```
-Something broke after Apply
-        │
-        ├─ JSON backup exists?
-        │       YES → .\ZavetSecHardeningBaseline.ps1 -Mode Rollback -BackupPath <path>
-        │                    (precise restore of your exact prior values)
-        │
-        └─ No backup / hardened by another tool?
-                YES → .\ZavetSecWindowsDefaults.ps1
-                             (full reset to clean Windows defaults)
-```
+All three: PS 5.1, zero dependencies, self-contained HTML reports, PsExec-compatible.
 
 ---
 
@@ -350,8 +350,8 @@ Something broke after Apply
 
 <div align="center">
 
-**ZavetSec** — security tooling for those who read logs at 2am
+**[ZavetSec](https://github.com/zavetsec)** — security tooling for those who read logs at 2 AM
 
-[GitHub](https://github.com/zavetsec) · MIT License
+*⭐ Star the repo to help other defenders find it.*
 
 </div>
