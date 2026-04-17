@@ -86,7 +86,7 @@
     ================================================================
     ZavetSec | https://github.com/zavetsec
     Script   : ZavetSecHardeningBaseline
-    Version  : 1.0
+    Version  : 1.1
     Author   : ZavetSec
     License  : MIT
     ================================================================
@@ -218,6 +218,17 @@ function Test-And-Set {
     } elseif ($isApply -and $compliant) {
         $applyStatus = 'AlreadyCompliant'
         $global:Skipped++
+    }
+
+    # --- POST-APPLY RE-CHECK ---
+    # Обновляем $compliant актуальным состоянием после применения,
+    # чтобы отчёт отражал результат Apply, а не состояние до него.
+    if ($isApply -and $applyStatus -notin @('', 'AlreadyCompliant')) {
+        try {
+            $compliant = & $CheckScript
+        } catch {
+            $compliant = $false
+        }
     }
 
     $global:Checks.Add([PSCustomObject]@{
@@ -1567,7 +1578,7 @@ function sf(v) {
 }
 </script>
 <footer>
-  <span style="color:#00d4ff;font-weight:700">ZavetSec</span> &nbsp;|&nbsp; ZavetSecHardeningBaseline v1.0 &nbsp;|&nbsp; github.com/zavetsec &nbsp;|&nbsp; Host: $env:COMPUTERNAME &nbsp;|&nbsp; Mode: $Mode &nbsp;|&nbsp; $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss')) &nbsp;|&nbsp; <span style="color:#ff2d55">CONFIDENTIAL &mdash; SOC/DFIR USE ONLY</span>
+  <span style="color:#00d4ff;font-weight:700">ZavetSec</span> &nbsp;|&nbsp; ZavetSecHardeningBaseline v1.1 &nbsp;|&nbsp; github.com/zavetsec &nbsp;|&nbsp; Host: $env:COMPUTERNAME &nbsp;|&nbsp; Mode: $Mode &nbsp;|&nbsp; $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss')) &nbsp;|&nbsp; <span style="color:#ff2d55">CONFIDENTIAL &mdash; SOC/DFIR USE ONLY</span>
 </footer>
 </body>
 </html>
