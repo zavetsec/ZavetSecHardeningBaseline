@@ -53,7 +53,7 @@
     ================================================================
     ZavetSec | https://github.com/zavetsec
     Script   : ZavetSecWindowsDefaults
-    Version  : 1.0
+    Version  : 1.1
     Author   : ZavetSec
     License  : MIT
     ================================================================
@@ -130,8 +130,8 @@ function Add-Result {
         Note     = $Note
     })
     if ($Status -eq 'OK')      { $global:OK++;      Write-OK   "$Name" }
-    elseif ($Status -eq 'SKIP'){ $global:Skipped++; Write-Info "$Name — $Note" }
-    else                       { $global:Failed++;  Write-Err  "$Name — $Note" }
+    elseif ($Status -eq 'SKIP'){ $global:Skipped++; Write-Info "$Name - $Note" }
+    else                       { $global:Failed++;  Write-Err  "$Name - $Note" }
 }
 
 function Reset-Registry {
@@ -165,12 +165,12 @@ Write-Host '    |_  /__ ___ _____ ___ | |_ / __/__ ___     ' -ForegroundColor Cy
 Write-Host '     / // _` \ V / -_)  _||  _\__ \/ -_) _|    ' -ForegroundColor Cyan
 Write-Host '    /___\__,_|\_/\___\__| |_| |___/\___\__|    ' -ForegroundColor DarkCyan
 Write-Host ''
-Write-Host '    ZavetSecWindowsDefaults v1.0                ' -ForegroundColor White
+Write-Host '    ZavetSecWindowsDefaults v1.1                ' -ForegroundColor White
 Write-Host '    Reset hardening to Windows defaults         ' -ForegroundColor DarkGray
 Write-Host '    https://github.com/zavetsec                 ' -ForegroundColor DarkGray
 Write-Host ''
 Write-Host '  ============================================================' -ForegroundColor DarkCyan
-Write-Host '    Script : ZavetSecWindowsDefaults v1.0'        -ForegroundColor Cyan
+Write-Host '    Script : ZavetSecWindowsDefaults v1.1'        -ForegroundColor Cyan
 Write-Host "    Host   : $env:COMPUTERNAME"                   -ForegroundColor Gray
 Write-Host "    Time   : $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor Gray
 Write-Host '  ============================================================' -ForegroundColor DarkCyan
@@ -205,43 +205,43 @@ if ($NonInteractive) {
 }
 
 # ===========================================================
-# SECTION 1: NETWORK — RESTORE DEFAULTS
+# SECTION 1: NETWORK - RESTORE DEFAULTS
 # ===========================================================
-Write-Phase 'NETWORK — restoring defaults'
+Write-Phase 'NETWORK - restoring defaults'
 
-# LLMNR — remove policy key (default = enabled)
+# LLMNR - remove policy key (default = enabled)
 Reset-Registry 'Network' 'Re-enable LLMNR' `
     'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient' 'EnableMulticast' 'Remove'
 
-# mDNS — remove policy key (default = enabled)
+# mDNS - remove policy key (default = enabled)
 Reset-Registry 'Network' 'Re-enable mDNS' `
     'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient' 'EnableMDNS' 'Remove'
 
-# WPAD — remove DisableWpad (default = auto-detect enabled)
+# WPAD - remove DisableWpad (default = auto-detect enabled)
 Reset-Registry 'Network' 'Re-enable WPAD auto-detection' `
     'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\WinHttp' 'DisableWpad' 'Remove'
 try {
     Start-Service 'WinHttpAutoProxySvc' -EA SilentlyContinue
 } catch {}
 
-# SMBv1 server — restore to default (enabled)
+# SMBv1 server - restore to default (enabled)
 Reset-Registry 'Network' 'Restore SMBv1 server key' `
     'HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters' 'SMB1' 'SetValue' -Value 1
-# SMBv1 client driver — set back to manual load (3), reboot required
+# SMBv1 client driver - set back to manual load (3), reboot required
 Reset-Registry 'Network' 'Restore SMBv1 client driver (reboot required)' `
     'HKLM:\SYSTEM\CurrentControlSet\Services\mrxsmb10' 'Start' 'SetValue' -Value 3
 
-# SMB signing server — remove requirements (default = not required)
+# SMB signing server - remove requirements (default = not required)
 Reset-Registry 'Network' 'Remove SMB signing requirement (server)' `
     'HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters' 'RequireSecuritySignature' 'SetValue' -Value 0
 Reset-Registry 'Network' 'Remove SMB signing enable (server)' `
     'HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters' 'EnableSecuritySignature' 'SetValue' -Value 0
 
-# SMB signing client — remove requirement
+# SMB signing client - remove requirement
 Reset-Registry 'Network' 'Remove SMB signing requirement (client)' `
     'HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters' 'RequireSecuritySignature' 'SetValue' -Value 0
 
-# NBT-NS — restore to default (0 = use DHCP setting)
+# NBT-NS - restore to default (0 = use DHCP setting)
 try {
     Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters\Interfaces' -EA Stop | ForEach-Object {
         Set-ItemProperty -Path $_.PSPath -Name 'NetbiosOptions' -Value 0 -Force -EA SilentlyContinue
@@ -251,11 +251,11 @@ try {
     Add-Result 'Network' 'Restore NetBIOS over TCP/IP (all adapters)' 'FAIL' $_.Exception.Message
 }
 
-# LMHOSTS — restore to enabled (1)
+# LMHOSTS - restore to enabled (1)
 Reset-Registry 'Network' 'Re-enable LMHOSTS lookup' `
     'HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters' 'EnableLMHOSTS' 'SetValue' -Value 1
 
-# Anonymous enumeration — restore defaults
+# Anonymous enumeration - restore defaults
 Reset-Registry 'Network' 'Restore anonymous SAM enumeration' `
     'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' 'RestrictAnonymousSAM' 'SetValue' -Value 0
 Reset-Registry 'Network' 'Restore anonymous enumeration' `
@@ -263,7 +263,7 @@ Reset-Registry 'Network' 'Restore anonymous enumeration' `
 Reset-Registry 'Network' 'Restore Everyone includes Anonymous' `
     'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' 'EveryoneIncludesAnonymous' 'SetValue' -Value 0
 
-# Remote Registry — restore to Manual (default), stopped
+# Remote Registry - restore to Manual (default), stopped
 try {
     Set-Service 'RemoteRegistry' -StartupType Manual -EA SilentlyContinue
     Add-Result 'Network' 'Restore Remote Registry to Manual (stopped)' 'OK'
@@ -271,24 +271,24 @@ try {
     Add-Result 'Network' 'Restore Remote Registry to Manual (stopped)' 'FAIL' $_.Exception.Message
 }
 
-# DoH policy — remove (default = system handles DNS)
+# DoH policy - remove (default = system handles DNS)
 Reset-Registry 'Network' 'Remove DNS over HTTPS policy' `
     'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient' 'DoHPolicy' 'Remove'
 
 # ===========================================================
-# SECTION 2: CREDENTIALS — RESTORE DEFAULTS
+# SECTION 2: CREDENTIALS - RESTORE DEFAULTS
 # ===========================================================
-Write-Phase 'CREDENTIALS — restoring defaults'
+Write-Phase 'CREDENTIALS - restoring defaults'
 
-# WDigest — remove override (system default on modern Windows = 0, but remove explicit key)
+# WDigest - remove override (system default on modern Windows = 0, but remove explicit key)
 Reset-Registry 'Credentials' 'Remove WDigest override' `
     'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest' 'UseLogonCredential' 'Remove'
 
-# LSA RunAsPPL — remove (default = not set)
+# LSA RunAsPPL - remove (default = not set)
 Reset-Registry 'Credentials' 'Remove LSA RunAsPPL' `
     'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' 'RunAsPPL' 'Remove'
 
-# Credential Guard — remove policy keys
+# Credential Guard - remove policy keys
 Reset-Registry 'Credentials' 'Remove Credential Guard VBS policy' `
     'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard' 'EnableVirtualizationBasedSecurity' 'Remove'
 Reset-Registry 'Credentials' 'Remove Credential Guard LsaCfgFlags' `
@@ -304,24 +304,24 @@ try {
     Add-Result 'Credentials' 'Remove remaining Credential Guard policy keys' 'FAIL' $_.Exception.Message
 }
 
-# LmCompatibilityLevel — Windows default = 3
+# LmCompatibilityLevel - Windows default = 3
 Reset-Registry 'Credentials' 'Restore LmCompatibilityLevel to 3 (Windows default)' `
     'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' 'LmCompatibilityLevel' 'SetValue' -Value 3
 
-# NoLMHash — remove (default = LM hashes may be stored on older OS)
+# NoLMHash - remove (default = LM hashes may be stored on older OS)
 Reset-Registry 'Credentials' 'Remove NoLMHash restriction' `
     'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' 'NoLMHash' 'Remove'
 
-# NTLM min session security — remove overrides
+# NTLM min session security - remove overrides
 Reset-Registry 'Credentials' 'Remove NTLMMinServerSec override' `
     'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0' 'NTLMMinServerSec' 'Remove'
 Reset-Registry 'Credentials' 'Remove NTLMMinClientSec override' `
     'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0' 'NTLMMinClientSec' 'Remove'
 
 # ===========================================================
-# SECTION 3: POWERSHELL — RESTORE DEFAULTS
+# SECTION 3: POWERSHELL - RESTORE DEFAULTS
 # ===========================================================
-Write-Phase 'POWERSHELL — restoring defaults'
+Write-Phase 'POWERSHELL - restoring defaults'
 
 # Script Block Logging
 Reset-Registry 'PowerShell' 'Disable Script Block Logging' `
@@ -343,11 +343,11 @@ try {
 Reset-Registry 'PowerShell' 'Disable Transcription' `
     'HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\Transcription' 'EnableTranscripting' 'SetValue' -Value 0
 
-# Execution Policy — remove machine-level override
+# Execution Policy - remove machine-level override
 Reset-Registry 'PowerShell' 'Remove Execution Policy override' `
     'HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell' 'ExecutionPolicy' 'Remove'
 
-# PSv2 — re-enable (requires reboot)
+# PSv2 - re-enable (requires reboot)
 try {
     Enable-WindowsOptionalFeature -Online -FeatureName 'MicrosoftWindowsPowerShellV2Root' -NoRestart -EA SilentlyContinue | Out-Null
     Enable-WindowsOptionalFeature -Online -FeatureName 'MicrosoftWindowsPowerShellV2'     -NoRestart -EA SilentlyContinue | Out-Null
@@ -357,9 +357,9 @@ try {
 }
 
 # ===========================================================
-# SECTION 4: AUDIT POLICY — RESET ALL TO NO AUDITING
+# SECTION 4: AUDIT POLICY - RESET ALL TO NO AUDITING
 # ===========================================================
-Write-Phase 'AUDIT POLICY — resetting all subcategories to No Auditing'
+Write-Phase 'AUDIT POLICY - resetting all subcategories to No Auditing'
 
 $auditSubcats = @(
     @{ ID='AUD-001'; Guid='{0CCE922B-69AE-11D9-BED3-505054503030}'; Sub='Process Creation' }
@@ -402,11 +402,11 @@ foreach ($ac in $auditSubcats) {
 }
 
 # ===========================================================
-# SECTION 5: SYSTEM — RESTORE DEFAULTS
+# SECTION 5: SYSTEM - RESTORE DEFAULTS
 # ===========================================================
-Write-Phase 'SYSTEM — restoring defaults'
+Write-Phase 'SYSTEM - restoring defaults'
 
-# UAC — restore to Windows default (ConsentPromptBehaviorAdmin=5, EnableLUA=1)
+# UAC - restore to Windows default (ConsentPromptBehaviorAdmin=5, EnableLUA=1)
 try {
     $uacKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
     Set-RegValue $uacKey 'ConsentPromptBehaviorAdmin' 5   # Default: prompt for creds
@@ -418,7 +418,7 @@ try {
     Add-Result 'System' 'Restore UAC to Windows defaults' 'FAIL' $_.Exception.Message
 }
 
-# AutoRun / AutoPlay — restore defaults
+# AutoRun / AutoPlay - restore defaults
 Reset-Registry 'System' 'Restore AutoRun (NoDriveTypeAutoRun)' `
     'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer' 'NoDriveTypeAutoRun' 'SetValue' -Value 145
 Reset-Registry 'System' 'Remove NoAutorun key' `
@@ -426,7 +426,7 @@ Reset-Registry 'System' 'Remove NoAutorun key' `
 Reset-Registry 'System' 'Restore AutoPlay for non-volume devices' `
     'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer' 'NoAutoplayfornonVolume' 'Remove'
 
-# Event Log sizes — restore Windows defaults
+# Event Log sizes - restore Windows defaults
 try {
     & wevtutil sl Security    /ms:20971520  /rt:false /ab:false 2>&1 | Out-Null  # 20 MB
     & wevtutil sl System      /ms:20971520  /rt:false /ab:false 2>&1 | Out-Null
@@ -439,15 +439,15 @@ try {
     Add-Result 'System' 'Restore Event Log sizes' 'FAIL' $_.Exception.Message
 }
 
-# RDP NLA — remove enforcement (default = required on modern Windows, but remove explicit override)
+# RDP NLA - remove enforcement (default = required on modern Windows, but remove explicit override)
 Reset-Registry 'System' 'Remove RDP NLA explicit override' `
     'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' 'UserAuthenticationRequired' 'Remove'
 
-# RDP encryption — restore to default (2 = Client Compatible)
+# RDP encryption - restore to default (2 = Client Compatible)
 Reset-Registry 'System' 'Restore RDP encryption level to Client Compatible' `
     'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' 'MinEncryptionLevel' 'SetValue' -Value 2
 
-# DEP — restore to OptIn (Windows default)
+# DEP - restore to OptIn (Windows default)
 try {
     & bcdedit /set '{current}' nx OptIn 2>&1 | Out-Null
     Add-Result 'System' 'Restore DEP to OptIn (reboot required)' 'OK'
@@ -523,7 +523,7 @@ footer{margin-top:32px;padding:16px 40px;border-top:1px solid #181828;color:#6e6
 <body>
 <header>
   <div class="hi">
-    <h1>ZavetSecWindowsDefaults <span style="font-size:13px;color:#6e6e80;font-weight:400">v1.0</span></h1>
+    <h1>ZavetSecWindowsDefaults <span style="font-size:13px;color:#6e6e80;font-weight:400">v1.1</span></h1>
     <p>Windows Settings Reset to Defaults &nbsp;|&nbsp; Host: $env:COMPUTERNAME &nbsp;|&nbsp; Run: $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss')) &nbsp;|&nbsp; Duration: $duration</p>
   </div>
   <div style="margin-left:auto;text-align:right;font-size:11px;color:#6e6e80;font-family:'Courier New',monospace;line-height:1.8">
@@ -577,7 +577,7 @@ footer{margin-top:32px;padding:16px 40px;border-top:1px solid #181828;color:#6e6
 
 </div>
 <footer>
-  <span style="color:#00d4ff;font-weight:700">ZavetSec</span> &nbsp;|&nbsp; ZavetSecWindowsDefaults v1.0 &nbsp;|&nbsp; github.com/zavetsec &nbsp;|&nbsp; Host: $env:COMPUTERNAME &nbsp;|&nbsp; $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss')) &nbsp;|&nbsp; <span style="color:#ff6b00">HARDENING REMOVED &mdash; REBOOT REQUIRED</span>
+  <span style="color:#00d4ff;font-weight:700">ZavetSec</span> &nbsp;|&nbsp; ZavetSecWindowsDefaults v1.1 &nbsp;|&nbsp; github.com/zavetsec &nbsp;|&nbsp; Host: $env:COMPUTERNAME &nbsp;|&nbsp; $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss')) &nbsp;|&nbsp; <span style="color:#ff6b00">HARDENING REMOVED &mdash; REBOOT REQUIRED</span>
 </footer>
 </body>
 </html>
