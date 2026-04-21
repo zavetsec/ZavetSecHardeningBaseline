@@ -330,16 +330,27 @@ Both files are fully open-source. Review before adding exclusions.
 
 ## `>_ part of the ZavetSec DFIR toolkit`
 
-Designed for live incident response and rapid hardening engagements. Each tool
-is independent — use any one standalone, or chain them as a pipeline.
+`ZavetSecHardeningBaseline` is one module in the **ZavetSec** open-source SOC/DFIR
+toolkit — a collection of standalone PowerShell tools built for practitioners who
+work in real environments: mixed OS fleets, no internet, constrained budgets, and
+incidents that don't wait.
 
-| Tool | What it does |
-|---|---|
-| **[Invoke-ZavetSecTriage](https://github.com/zavetsec/Invoke-ZavetSecTriage)** | Live artifact collection — 18 modules, MITRE-tagged findings, HTML report |
-| **[Invoke-MBHashCheck](https://github.com/zavetsec/Invoke-MBHashCheck)** | Bulk hash triage — MalwareBazaar + ThreatFox C2 enrichment + GeoIP |
-| **ZavetSecHardeningBaseline** | 60 checks — CIS/STIG aligned, JSON rollback, compliance report |
+Every tool in the toolkit follows the same design contract:
 
-All three: PS 5.1, zero dependencies, self-contained HTML reports, PsExec-compatible.
+- **PS 5.1 only** — runs on anything from Server 2016 to Windows 11, no prerequisites
+- **Zero dependencies** — single script file, no modules to install, no internet required
+- **Self-contained HTML reports** — dark-themed, filterable, ready to attach to a ticket
+- **MITRE ATT&CK mapped** — findings tied to techniques, not just abstract recommendations
+- **PsExec / automation compatible** — `-NonInteractive` flag across all tools
+- **Reversible** — where changes are made, a rollback path always exists
+
+The toolkit covers the full incident response lifecycle: live triage and artifact
+collection, threat intel enrichment, network discovery and vulnerability surface
+mapping, lateral movement detection, credential exposure analysis, and hardening
+with compliance reporting. Tools are designed to be chained as a pipeline or
+used independently depending on what the engagement calls for.
+
+**→ [github.com/zavetsec](https://github.com/zavetsec)**
 
 ---
 
