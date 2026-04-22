@@ -1,28 +1,29 @@
-<div align="center">
-
-```
-     ____                  _    ____            
-    |_  /__ ___ _____ ___ | |_ / __/__ ___     
-     / // _` \ V / -_)  _||  _\__ \/ -_) _|    
-    /___\__,_|\_/\___\__| |_| |___/\___\__|    
-```
-
-**Windows Security Hardening Baseline**
+# ZavetSec Hardening Baseline
 
 [![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-0078d4?style=flat-square&logo=powershell)](https://docs.microsoft.com/powershell)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11%20%7C%20Server%202016--2022-0078d4?style=flat-square&logo=windows)](https://microsoft.com/windows)
 [![CIS](https://img.shields.io/badge/Standard-CIS%20%7C%20DISA%20STIG%20%7C%20MS%20Baseline-00b4d8?style=flat-square)](https://cisecurity.org)
 [![License](https://img.shields.io/badge/License-MIT-30d158?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.1-ff6b00?style=flat-square)](#)
-[![Stars](https://img.shields.io/github/stars/zavetsec/ZavetSecHardeningBaseline?style=flat-square)](https://github.com/zavetsec/ZavetSecHardeningBaseline/stargazers)
+[![Version](https://img.shields.io/badge/Version-1.2-ff6b00?style=flat-square)](#)
 
-*One script. 60 checks. Three modes. Zero bloat.*
+**Windows ships with insecure defaults. This fixes them.**
 
-</div>
+**One script. 60 checks. Four modes. Zero bloat.**
+
+### ⚡ Why use this
+
+✔ No install  
+✔ No internet required  
+✔ Works on any Windows 10/11/Server  
+✔ Safe to rollback  
+✔ Used in real-world environments: standalone hosts, lab fleets, and incident response
 
 ---
 
-> **TL;DR** — **Audit in 30 seconds. Harden in 60. Rollback anytime.** Zero dependencies, no AD required. Output: a filterable HTML report with compliance score, per-check MITRE tags, and remediation commands.
+> **Find and fix 60+ insecure Windows defaults that enable credential theft and lateral movement.**
+> Zero dependencies &nbsp;·&nbsp; No AD &nbsp;·&nbsp; Safe rollback &nbsp;·&nbsp; Self-contained HTML report
+>
+> Settings derived from CIS Benchmark, DISA STIG, and Microsoft Security Baseline — **mapped and adapted** for standalone and offline environments.
 
 ---
 
@@ -31,7 +32,7 @@
 Most Windows environments ship with settings that are actively dangerous:
 LLMNR broadcasting credentials to anyone who asks, WDigest storing plaintext
 passwords in memory, SMBv1 waiting for EternalBlue, audit logs sized at 20 MB
-that fill in hours. These are not edge cases — **they are defaults.**
+that fill in hours. These are not misconfigurations — **they are shipped this way, on every fresh install.**
 
 `ZavetSecHardeningBaseline` fixes this. It audits your current state, applies
 a hardened baseline aligned to **CIS Benchmark**, **DISA STIG**, and
@@ -41,7 +42,39 @@ backup created before every change.
 
 ---
 
+## `>_ who this is for`
+
+- **SOC analysts** running rapid host assessments
+- **DFIR / IR teams** hardening a foothold post-incident
+- **Sysadmins** without AD / GPO control (workgroup, cloud-joined, standalone)
+- **Red teamers** validating baseline weaknesses before an engagement
+- **Anyone** who needs to prove a machine meets a compliance baseline
+
+---
+
+## `>_ 10-second start`
+
+```powershell
+.\ZavetSecHardeningBaseline.ps1
+```
+```
+  [1]  Audit     - Check current state, no changes made
+  [2]  Apply     - Harden the system (backup created first)
+  [3]  Rollback  - Revert to pre-hardening state from backup
+  [4]  Defaults  - Reset all settings to Windows out-of-box defaults
+```
+
+Choose `[1] Audit` → open the HTML report → review what's exposed → come back and hit `[2] Apply`.
+
+---
+
 ## `>_ how it works`
+
+```
+Audit    → detect insecure defaults (no changes)
+Apply    → backup → harden → verify
+Rollback → restore exact previous state
+```
 
 ```
   ┌─────────────────────────────────────────────────────────┐
@@ -57,6 +90,8 @@ backup created before every change.
   │   Change engine     Verify each setting post-apply      │
   │       │                                                 │
   │   Rollback mode     Read backup → restore prior state   │
+  │       │                                                 │
+  │   Defaults mode     Reset to Windows out-of-box state   │
   │                                                         │
   └─────────────────────────────────────────────────────────┘
 ```
@@ -70,64 +105,95 @@ backup created before every change.
 
 ## `>_ what attacks does this stop`
 
-| Threat | MITRE | Controls |
-|---|---|---|
-| Responder / MITM | T1557.001 | LLMNR, NBT-NS, mDNS, WPAD disabled · SMB signing required |
-| Mimikatz / LSASS dump | T1003.001 | WDigest off · LSA PPL on · Credential Guard enabled |
-| Pass-the-Hash | T1550.002 | NTLMv2 only · LM hash storage off · 128-bit session |
-| EternalBlue / WannaCry | T1210 | SMBv1 disabled — server and client driver |
-| Lateral movement | T1021 | Remote Registry off · anonymous enumeration restricted |
-| Pre-auth RDP exploits | T1021.001 | NLA enforced · encryption level high |
-| USB payload delivery | T1091 | AutoRun / AutoPlay disabled on all drive types |
-| PowerShell abuse | T1059.001 | Script Block + Module logging · PSv2 disabled |
-| Logging blind spot | — | Security log 1 GB · 29 audit subcategory checks configured |
+| Threat | Impact | MITRE | Controls |
+|---|---|---|---|
+| 🔴 Responder / MITM | Credential capture over LAN | T1557.001 | LLMNR, NBT-NS, mDNS, WPAD disabled · SMB signing required |
+| 🔴 Mimikatz / LSASS dump | Plaintext passwords from memory | T1003.001 | WDigest off · LSA PPL on · Credential Guard enabled |
+| 🔴 Pass-the-Hash | Lateral movement without password | T1550.002 | NTLMv2 only · LM hash storage off · 128-bit session |
+| 🔴 EternalBlue / WannaCry | Remote code execution, ransomware | T1210 | SMBv1 disabled — server and client driver |
+| 🟠 Lateral movement | Spread across the network | T1021 | Remote Registry off · anonymous enumeration restricted |
+| 🟠 Pre-auth RDP exploits | RCE before login prompt | T1021.001 | NLA enforced · encryption level high |
+| 🟠 USB payload delivery | Autorun from physical media | T1091 | AutoRun / AutoPlay disabled on all drive types |
+| 🟠 PowerShell abuse | LOLBin / fileless execution | T1059.001 | Script Block + Module logging · PSv2 disabled |
+| 🟡 Logging blind spot | Undetected attacker activity | — | Security log 1 GB · 29 audit subcategory checks |
 
 ---
 
 ## `>_ coverage`
 
 ### 🌐 Network surface reduction
-LLMNR, mDNS, WPAD, NBT-NS, LMHOSTS disabled. SMBv1 off on server and client
-driver. SMB signing required on both sides. Anonymous SAM/share enumeration
-blocked. Remote Registry disabled. `NET-001 — NET-010`
+- LLMNR — **disabled** (Responder bait)
+- mDNS — **disabled**
+- WPAD — **disabled** (proxy hijack vector)
+- NBT-NS — **disabled** on all adapters
+- LMHOSTS lookup — **disabled**
+- SMBv1 server — **disabled**
+- SMBv1 client driver (mrxsmb10) — **disabled** (reboot required)
+- SMB signing server — **required**
+- SMB signing client — **required**
+- Anonymous SAM/share enumeration — **blocked**
+- Remote Registry service — **disabled**
+
+`NET-001 — NET-010`
 
 ### 🔑 Credential protection
-WDigest plaintext caching off. LSA Protected Process Light enabled. Credential
-Guard (VBS) enabled. NTLMv2 only — LM and NTLMv1 refused. LM hash storage
-disabled. 128-bit NTLM session security enforced. `CRED-001 — CRED-006`
+- WDigest plaintext caching — **disabled**
+- LSA Protected Process Light — **enabled**
+- Credential Guard (VBS) — **enabled**
+- LAN Manager auth level — **NTLMv2 only** (LM/NTLMv1 refused)
+- LM hash storage — **disabled**
+- NTLM 128-bit session security — **enforced**
+
+`CRED-001 — CRED-006`
 
 ### 🐚 PowerShell hardening
-Script Block Logging (4104) and Module Logging (4103) enabled. Transcription
-to `C:\ProgramData\PSTranscripts`. PSv2 engine disabled — closes the
-`powershell -version 2` AMSI bypass. Execution Policy set at machine scope.
+- Script Block Logging (4104) — **enabled**
+- Module Logging (4103) — **enabled**
+- Transcription to `C:\ProgramData\PSTranscripts` — **enabled**
+- PowerShell v2 engine — **disabled** (AMSI bypass vector)
+- Execution Policy (RemoteSigned) — **set at machine scope**
+
 `PS-001 — PS-005`
 
 ### 📋 Audit policy
-27 subcategories via `auditpol` with GUID references, plus command-line
-capture in 4688 and advanced audit policy override (SCENoApplyLegacyAuditPolicy).
-Covers Logon/Logoff, Kerberos (TGT + TGS), Process Creation, Account Management,
-Object Access, Privilege Use, Policy Change, DPAPI, Scheduled Tasks, Removable
-Storage, Firewall events. `AUD-001 — AUD-029`
+27 subcategories via `auditpol` with GUID references — locale-independent, works
+on any Windows language. Plus command-line capture in 4688, and
+`SCENoApplyLegacyAuditPolicy` to prevent GPO from silently overriding subcategory
+settings. Covers Logon/Logoff, Kerberos (TGT + TGS), Process Creation, Account
+Management, Object Access, Privilege Use, Policy Change, DPAPI, Scheduled Tasks,
+Removable Storage, Firewall events.
+
+`AUD-001 — AUD-029`
 
 ### 🖥️ System hardening
-UAC full enforcement with secure desktop. AutoRun/AutoPlay disabled. Firewall
-on all profiles. RDP NLA required. DEP AlwaysOn. Security log 1 GB / overwrite,
-System and Application logs 256 MB / overwrite. DoH policy. RDP encryption high.
-Print Spooler disable opt-in (PrintNightmare). `SYS-001 — SYS-010`
+- UAC — **full enforcement** with secure desktop prompt
+- AutoRun / AutoPlay — **disabled** on all drive types
+- Windows Firewall — **enabled** on all profiles (Domain, Private, Public)
+- RDP NLA — **required**
+- DEP — **AlwaysOn** (reboot required)
+- Security log — **1 GB / overwrite**
+- System + Application logs — **256 MB / overwrite**
+- DNS-over-HTTPS policy — **enabled**
+- RDP encryption — **High** (MinEncryptionLevel=3)
+- Print Spooler disable — **opt-in** (PrintNightmare mitigation)
+
+`SYS-001 — SYS-010`
 
 ---
 
 ## `>_ output — HTML report`
 
-Every run produces a dark-themed, filterable HTML report:
+Every run produces a self-contained, dark-themed HTML report — no external
+dependencies, opens in any browser:
 
-- Compliance score gauge (0–100%)
-- Per-category breakdown table
-- Full check list — ID · severity · MITRE technique · result · apply status · remediation command
-- Filter by: FAIL only · CRITICAL · HIGH · category
-- Backup path and rollback command pre-filled at the bottom
+- **Compliance score gauge** (0–100%) — green ≥80%, orange 60–79%, red <60%
+- **Per-category breakdown** with pass/fail bars
+- **Device Profile Applied** section — which sections ran, which were skipped and why
+- **Full check list** — ID · severity · MITRE technique · result · apply status · remediation command
+- **Live filter** — FAIL only · CRITICAL · HIGH · by category · free text search
+- **Rollback command** pre-filled at the bottom with the backup path
 
-Hand it to a customer. Attach it to a change management record. Run it before/after to show delta.
+Hand it to a customer. Attach it to a change management record. Run before/after to show delta.
 
 > 📸 **Screenshot:**
 
@@ -144,55 +210,89 @@ Hand it to a customer. Attach it to a change management record. Run it before/af
 | **No dependencies** | ✅ PS 5.1 only | ❌ Java required | ✅ | ❌ AD/DC required |
 | **Offline** | ✅ | ❌ | ✅ | ✅ |
 | **Audit-only mode** | ✅ | ✅ | ❌ | ❌ |
-| **Selective apply** | ✅ skip flags | ❌ | ❌ | ❌ |
+| **Device profiles** | ✅ per-role safe presets | ❌ | ❌ | ❌ |
+| **Selective apply** | ✅ profiles + skip flags | ❌ | ❌ | ❌ |
 | **PsExec / automation** | ✅ `-NonInteractive` | ❌ | partial | partial |
 
-The main difference: most alternatives either change the system with no easy
-undo, require infrastructure (AD, Java, internet), or produce no report.
+The main difference: most alternatives either change the system with no easy undo,
+require infrastructure, or produce no actionable report.
 This tool is built to be **reversible, reportable, and runnable anywhere.**
+Designed for standalone and offline environments — no infrastructure required.
+
+> *Feature comparison based on default/standalone usage scenarios.*
 
 ---
 
 ## `>_ quickstart`
 
-### Option A — BAT launcher (recommended for manual use)
-
-Right-click `Run-Hardening.bat` → **Run as administrator.**
-
-```
-  ============================================================
-   ZavetSec - Windows Security Hardening Baseline
-  ============================================================
-
-   [1]  AUDIT    - Check current state (no changes)
-   [2]  APPLY    - Apply all hardening settings
-   [3]  ROLLBACK - Revert changes (requires backup file)
-   [4]  EXIT
-```
-
-All output (HTML reports and JSON backups) saved to the same folder as the scripts.
-ROLLBACK lists available backups by number — no path entry required.
-
-### Option B — PowerShell directly
+### Option A — interactive (recommended)
 
 ```powershell
-# Audit — zero changes
+.\ZavetSecHardeningBaseline.ps1
+```
+
+The script walks you through mode selection, then device profile selection for Apply,
+then backup file selection for Rollback. Every menu has **[0] Back**. Invalid input
+loops — nothing exits unexpectedly.
+
+**Apply flow after selecting [2]:**
+
+```
+  ==============================================================
+    Select device profile:
+  ==============================================================
+
+    [1]  Workstation       - endpoint, full hardening applied
+    [2]  File Server       - SMBv1/signing critical, skip Credential Guard
+    [3]  Domain Controller - skip Credential Guard + audit policy (use GPO)
+    [4]  RDS               - terminal server, full hardening + transcription note
+    [5]  SQL / DB Server   - skip Credential Guard, check Remote Registry
+    [6]  Exchange / Mail   - skip network + credential sections (NTLM/SMB deps)
+    [7]  Print Server      - Print Spooler preserved, skip Credential Guard
+
+    [8]  ALL               - apply all 60 checks, operator takes full responsibility
+
+    [0]  Back              - return to mode selection
+```
+
+**Rollback flow after selecting [3]:**
+
+```
+    [ 1]  HardeningBackup_20260422_143012.json  [2026-04-22 14:30:12]  8.4 KB
+    [ 2]  HardeningBackup_20260418_091544.json  [2026-04-18 09:15:44]  7.1 KB
+
+    [0]   Back
+```
+
+### Option B — BAT launcher
+
+Right-click `Run-Hardening.bat` → **Run as administrator.**
+Menu-driven launcher with Audit / Apply / Rollback. All output saved to the script folder.
+
+### Option C — direct flags
+
+```powershell
+# Audit -- zero changes
 .\ZavetSecHardeningBaseline.ps1 -Mode Audit
 
-# Apply (interactive)
-.\ZavetSecHardeningBaseline.ps1 -Mode Apply
+# Apply with device profile (no interactive menus)
+.\ZavetSecHardeningBaseline.ps1 -Mode Apply -DeviceProfile Workstation
+.\ZavetSecHardeningBaseline.ps1 -Mode Apply -DeviceProfile DomainController
+.\ZavetSecHardeningBaseline.ps1 -Mode Apply -DeviceProfile All
 
-# Apply — no prompts (PsExec / automation)
-.\ZavetSecHardeningBaseline.ps1 -Mode Apply -NonInteractive
+# Apply -- fully automated, no prompts
+.\ZavetSecHardeningBaseline.ps1 -Mode Apply -DeviceProfile Workstation -NonInteractive
 
-# Rollback — interactive: lists available backups, asks which to use
+# Rollback -- interactive backup selection
 .\ZavetSecHardeningBaseline.ps1 -Mode Rollback
 
-# Rollback — explicit backup path (e.g. from automation)
-.\ZavetSecHardeningBaseline.ps1 -Mode Rollback `
-    -BackupPath .\HardeningBackup_20260318_120000.json
+# Rollback -- explicit backup path (automation)
+.\ZavetSecHardeningBaseline.ps1 -Mode Rollback -BackupPath .\HardeningBackup_20260422_143012.json
 
-# Skip sections
+# Reset to Windows defaults (when backup is unavailable)
+.\ZavetSecHardeningBaseline.ps1 -Mode Defaults
+
+# Skip individual sections manually (Custom profile)
 .\ZavetSecHardeningBaseline.ps1 -Mode Apply -SkipAuditPolicy
 .\ZavetSecHardeningBaseline.ps1 -Mode Apply -SkipNetworkHardening
 .\ZavetSecHardeningBaseline.ps1 -Mode Apply -SkipCredentialProtection
@@ -202,11 +302,40 @@ ROLLBACK lists available backups by number — no path entry required.
 .\ZavetSecHardeningBaseline.ps1 -Mode Apply -EnablePrintSpoolerDisable
 ```
 
-### Option C — Mass deployment via PsExec
+### Option D — mass deployment via PsExec
 
 ```powershell
-psexec \\TARGET -s -c .\ZavetSecHardeningBaseline.ps1 -Mode Apply -NonInteractive
+psexec \\TARGET -s -c .\ZavetSecHardeningBaseline.ps1 -Mode Apply -DeviceProfile Workstation -NonInteractive
 ```
+
+---
+
+## `>_ device profiles`
+
+Profiles automatically configure `Skip*` flags for a given role. The HTML report
+includes a **Device Profile Applied** section (02.5) with the full applied/skipped
+list and the reason for each skip.
+
+| Profile | Skip Network | Skip Credentials | Skip Audit Policy | Print Spooler |
+|---|---|---|---|---|
+| `Workstation` | — | — | — | opt-in |
+| `FileServer` | — | ✓ | — | opt-in |
+| `DomainController` | — | ✓ | ✓ (manage via GPO) | opt-in |
+| `RDS` | — | — | — | opt-in |
+| `SQL` | — | ✓ | — | opt-in |
+| `Exchange` | ✓ | ✓ | — | opt-in |
+| `PrintServer` | — | ✓ | — | **never** |
+| `All` | — | — | — | **always on** |
+| `Custom` | manual `-Skip*` flags | | | |
+
+**Why credentials are skipped on most server profiles:** Credential Guard requires
+UEFI + Secure Boot + VBS and is explicitly unsupported on Domain Controllers per
+Microsoft documentation. On SQL Server and some storage configurations it can cause
+instability. `CRED-001` (WDigest) and `CRED-002` (LSA PPL) are still applied — only
+`CRED-003` (Credential Guard) is the problematic one, but the section is skipped as
+a whole to avoid partial application.
+
+> ⚠️ Always run Audit first on servers before selecting a profile and applying.
 
 ---
 
@@ -236,10 +365,10 @@ Day 0     Audit on a representative sample.
           Review the HTML report. Identify legacy dependencies
           (SMBv1 devices, NTLMv1 systems, old automation scripts).
 
-Day 1–7   Fix dependencies. Test Apply in a lab VM.
+Day 1-7   Fix dependencies. Test Apply in a lab VM.
           Confirm rollback works from the generated backup.
 
-Day 7     Apply to a pilot group (5–10 machines).
+Day 7     Apply to a pilot group (5-10 machines).
           Monitor for 48 hours. Check application behaviour and helpdesk.
 
 Day 14+   Roll out in batches. Reboot machines that require it.
@@ -253,13 +382,16 @@ Day 30    Re-run Audit across all machines.
 
 ## `>_ emergency reset`
 
-If hardening caused critical issues and the JSON backup is unavailable, use the
-companion script to reset all settings back to Windows out-of-box defaults:
+Two recovery paths are available — from the interactive menu `[4] Defaults` or directly:
 
 ```powershell
-.\ZavetSecWindowsDefaults.ps1
+# Path 1 -- precise restore from backup (preferred)
+.\ZavetSecHardeningBaseline.ps1 -Mode Rollback
+# Interactive list of available backups shown automatically
 
-# Silent — for remote recovery
+# Path 2 -- full reset to Windows out-of-box defaults (when backup unavailable)
+.\ZavetSecHardeningBaseline.ps1 -Mode Defaults
+# or directly:
 .\ZavetSecWindowsDefaults.ps1 -NonInteractive
 ```
 
@@ -267,14 +399,14 @@ companion script to reset all settings back to Windows out-of-box defaults:
 
 ```
 Something broke after Apply
-        │
-        ├─ JSON backup exists?
-        │       YES → .\ZavetSecHardeningBaseline.ps1 -Mode Rollback
-        │                    (interactive selection or -BackupPath for automation)
-        │
-        └─ No backup / hardened by another tool?
-                YES → .\ZavetSecWindowsDefaults.ps1
-                             (full reset to clean Windows defaults)
+        |
+        +-- JSON backup exists?
+        |       YES -> .\ZavetSecHardeningBaseline.ps1 -Mode Rollback
+        |                    (precise restore of your exact prior values)
+        |
+        +-- No backup / hardened by another tool?
+                YES -> .\ZavetSecHardeningBaseline.ps1 -Mode Defaults
+                             (full reset to clean Windows out-of-box state)
 ```
 
 ---
@@ -296,35 +428,32 @@ Something broke after Apply
 
 | Parameter | Default | Description |
 |---|---|---|
-| `-Mode Audit\|Apply\|Rollback` | `Audit` | Operation mode |
-| `-BackupPath` | `<ScriptDir>` | JSON backup path (interactive selection in Rollback if omitted) |
-| `-OutputPath` | `<ScriptDir>` | HTML report path |
-| `-SkipAuditPolicy` | — | Skip audit policy section |
-| `-SkipNetworkHardening` | — | Skip network section |
-| `-SkipPowerShell` | — | Skip PowerShell section |
-| `-SkipCredentialProtection` | — | Skip credentials section |
-| `-EnablePrintSpoolerDisable` | — | Disable Print Spooler (opt-in) |
-| `-NonInteractive` | — | Suppress all prompts |
+| `-Mode Audit\|Apply\|Rollback\|Defaults` | interactive menu | Operation mode. Omit to get the interactive mode selection menu. |
+| `-DeviceProfile` | `Custom` | Safe preset for device role. See Device Profiles table. Interactive menu shown on Apply if omitted. |
+| `-BackupPath` | `<ScriptDir>` | JSON backup path. In Rollback mode, an interactive list is shown if omitted. |
+| `-OutputPath` | `<ScriptDir>` | HTML report output path. |
+| `-SkipAuditPolicy` | — | Skip audit policy section. Overridden by profile selection. |
+| `-SkipNetworkHardening` | — | Skip network section. Overridden by profile selection. |
+| `-SkipPowerShell` | — | Skip PowerShell section. Overridden by profile selection. |
+| `-SkipCredentialProtection` | — | Skip credentials section. Overridden by profile selection. |
+| `-EnablePrintSpoolerDisable` | — | Disable Print Spooler (opt-in). Ignored on `PrintServer` profile. |
+| `-NonInteractive` | — | Suppress all prompts. Requires explicit `-Mode` and `-DeviceProfile` when used with Apply. |
 
 ---
 
 ## `>_ antivirus exclusions`
 
-> ⚠️ **Add both files to your AV/EDR exclusion list before running.**
+Some EDR/AV solutions may flag the script due to its behaviour — registry changes,
+service control, `auditpol.exe` calls, and `.bat` + `.ps1` execution in sequence.
+This is expected and does not indicate malicious intent.
 
-Hardening scripts are routinely flagged — not because they are malicious, but
-because their actions resemble attacker behaviour: modifying registry keys,
-disabling services, calling `auditpol.exe`, executing `.bat` + `.ps1` in
-sequence. This is expected and does not indicate a problem with the tool.
-
-Add to exclusions before running:
+If your AV triggers on it, review the source code (both files are fully open-source)
+and consider adding exclusions:
 
 ```
 ZavetSecHardeningBaseline.ps1
 Run-Hardening.bat
 ```
-
-Both files are fully open-source. Review before adding exclusions.
 
 ---
 
@@ -351,6 +480,13 @@ with compliance reporting. Tools are designed to be chained as a pipeline or
 used independently depending on what the engagement calls for.
 
 **→ [github.com/zavetsec](https://github.com/zavetsec)**
+
+---
+
+## `>_ if this helped`
+
+If this saved you time during an audit or incident — consider starring the repo.
+It helps other defenders find the tool.
 
 ---
 
