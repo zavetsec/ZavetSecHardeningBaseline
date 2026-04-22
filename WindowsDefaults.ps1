@@ -53,7 +53,6 @@
     ================================================================
     ZavetSec | https://github.com/zavetsec
     Script   : ZavetSecWindowsDefaults
-    Version  : 1.1
     Author   : ZavetSec
     License  : MIT
     ================================================================
@@ -165,12 +164,12 @@ Write-Host '    |_  /__ ___ _____ ___ | |_ / __/__ ___     ' -ForegroundColor Cy
 Write-Host '     / // _` \ V / -_)  _||  _\__ \/ -_) _|    ' -ForegroundColor Cyan
 Write-Host '    /___\__,_|\_/\___\__| |_| |___/\___\__|    ' -ForegroundColor DarkCyan
 Write-Host ''
-Write-Host '    ZavetSecWindowsDefaults v1.1                ' -ForegroundColor White
+Write-Host '    ZavetSecWindowsDefaults                      ' -ForegroundColor White
 Write-Host '    Reset hardening to Windows defaults         ' -ForegroundColor DarkGray
 Write-Host '    https://github.com/zavetsec                 ' -ForegroundColor DarkGray
 Write-Host ''
 Write-Host '  ============================================================' -ForegroundColor DarkCyan
-Write-Host '    Script : ZavetSecWindowsDefaults v1.1'        -ForegroundColor Cyan
+Write-Host '    Script : ZavetSecWindowsDefaults'             -ForegroundColor Cyan
 Write-Host "    Host   : $env:COMPUTERNAME"                   -ForegroundColor Gray
 Write-Host "    Time   : $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor Gray
 Write-Host '  ============================================================' -ForegroundColor DarkCyan
@@ -702,7 +701,7 @@ footer{
 <header>
   <div class="logo-block">
     <div class="logo-name">ZavetSec<div class="dot-anim" style="display:inline-flex"><span></span><span></span><span></span></div></div>
-    <div class="logo-title">Windows<span>Defaults</span><span class="logo-cursor">_</span> <span style="font-size:13px;color:#8b949e;font-weight:400">v1.1</span></div>
+    <div class="logo-title">Windows<span>Defaults</span><span class="logo-cursor">_</span></div>
     <div class="header-meta">Reset to Windows Defaults &nbsp;//&nbsp; Host: $env:COMPUTERNAME &nbsp;//&nbsp; $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss')) &nbsp;//&nbsp; Duration: $duration</div>
   </div>
   <div class="header-right">
@@ -783,7 +782,7 @@ footer{
 
 <footer>
   <span style="color:#00ff88;font-weight:700;letter-spacing:2px">ZAVETSEC</span>
-  &nbsp;&bull;&nbsp; ZavetSecWindowsDefaults v1.1
+  &nbsp;&bull;&nbsp; ZavetSecWindowsDefaults
   &nbsp;&bull;&nbsp; github.com/zavetsec
   &nbsp;&bull;&nbsp; Host: $env:COMPUTERNAME
   &nbsp;&bull;&nbsp; $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss'))

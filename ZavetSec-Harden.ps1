@@ -487,7 +487,8 @@ Write-Host '    |_  /__ ___ _____ ___ | |_ / __/__ ___     ' -ForegroundColor Cy
 Write-Host '     / // _` \ V / -_)  _||  _\__ \/ -_) _|    ' -ForegroundColor Cyan
 Write-Host '    /___\__,_|\_/\___\__| |_| |___/\___\__|    ' -ForegroundColor DarkCyan
 Write-Host ''
-Write-Host '    Windows Security Hardening Baseline v1.2    ' -ForegroundColor White
+Write-Host '    ZavetSec-Harden v1.2    ' -ForegroundColor White
+Write-Host '    Windows Security Hardening Baseline' -ForegroundColor Gray
 Write-Host '    CIS Benchmark | DISA STIG | MS Security Baseline' -ForegroundColor DarkGray
 Write-Host '    https://github.com/zavetsec                 ' -ForegroundColor DarkGray
 Write-Host ''
@@ -565,8 +566,6 @@ if ($Mode -eq '' -and -not $NonInteractive) {
         Write-Host ""
         Write-Host "    [0]  Exit" -ForegroundColor DarkGray
         Write-Host ""
-        Write-Host $sep -ForegroundColor DarkCyan
-        Write-Host ""
         $modeChoice = [Console]::ReadLine()
         switch ($modeChoice.Trim()) {
             '1' { $Mode = 'Audit';    $modeSelected = $true }
@@ -623,8 +622,6 @@ if ($isRollback) {
             Write-Host ""
             Write-Host "    [0]  Exit" -ForegroundColor DarkGray
             Write-Host ""
-            Write-Host $sep -ForegroundColor DarkCyan
-            Write-Host ""
             $modeChoice = [Console]::ReadLine()
             switch ($modeChoice.Trim()) {
                 '1' { $Mode = 'Audit';    $isAudit = $true;  $isApply = $false; $isRollback = $false; $isDefaults = $false; $modeSelected = $true }
@@ -647,29 +644,16 @@ if ($isRollback) {
 
 # ── Handle Defaults mode ──────────────────────────────────────────────────────
 if ($isDefaults) {
-    $defaultsScript = Join-Path $PSScriptRoot 'ZavetSecWindowsDefaults.ps1'
+    $defaultsScript = Join-Path $PSScriptRoot 'WindowsDefaults.ps1'
     if (-not (Test-Path $defaultsScript)) {
-        Write-Err "ZavetSecWindowsDefaults.ps1 not found in: $PSScriptRoot"
-        Write-Host "  Place ZavetSecWindowsDefaults.ps1 in the same folder as this script." -ForegroundColor Yellow
+        Write-Err "WindowsDefaults.ps1 not found in: $PSScriptRoot"
+        Write-Host "  Place WindowsDefaults.ps1 in the same folder as this script." -ForegroundColor Yellow
         Write-Host ""
         if (-not $NonInteractive) {
             Write-Host "  Press ENTER to exit..." -ForegroundColor DarkGray
             $null = [Console]::ReadLine()
         }
         exit 1
-    }
-    Write-Host ""
-    Write-Host "  [!!] Windows Defaults mode selected." -ForegroundColor DarkYellow
-    Write-Host "       This will reset ALL hardening settings to Windows out-of-box defaults." -ForegroundColor DarkGray
-    Write-Host "       Use only when a backup is unavailable or hardening was applied externally." -ForegroundColor DarkGray
-    Write-Host ""
-    if (-not $NonInteractive) {
-        Write-Host "  Type YES to confirm: " -ForegroundColor Yellow -NoNewline
-        $confirm = [Console]::ReadLine()
-        if ($confirm -ne 'YES') {
-            Write-Host "  Cancelled." -ForegroundColor DarkGray
-            exit 0
-        }
     }
     if ($NonInteractive) {
         & $defaultsScript -NonInteractive
@@ -2368,8 +2352,8 @@ footer{
 <header>
   <div class="logo-block">
     <div class="logo-name">ZavetSec<div class="dot-anim" style="display:inline-flex"><span></span><span></span><span></span></div></div>
-    <div class="logo-title">Hardening<span>Baseline</span><span class="logo-cursor">_</span> <span style="font-size:13px;color:#8b949e;font-weight:400">v1.1</span></div>
-    <div class="header-meta">Windows Security Hardening &nbsp;//&nbsp; Host: $env:COMPUTERNAME &nbsp;//&nbsp; Mode: <span class="mode-badge" style="background:$modeColor">$Mode</span> &nbsp;//&nbsp; $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss')) &nbsp;//&nbsp; Duration: $duration &nbsp;//&nbsp; Checks: $totalChecks</div>
+    <div class="logo-title"><span>Harden</span><span class="logo-cursor">_</span> <span style="font-size:13px;color:#8b949e;font-weight:400">v1.2</span></div>
+    <div class="header-meta">Windows Security Hardening Baseline &nbsp;//&nbsp; Host: $env:COMPUTERNAME &nbsp;//&nbsp; Mode: <span class="mode-badge" style="background:$modeColor">$Mode</span> &nbsp;//&nbsp; $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss')) &nbsp;//&nbsp; Duration: $duration &nbsp;//&nbsp; Checks: $totalChecks</div>
   </div>
   <div class="header-right">
     <div class="brand">ZavetSec</div>
