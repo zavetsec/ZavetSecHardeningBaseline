@@ -66,6 +66,8 @@ backup created before every change.
 
 Choose `[1] Audit` → open the HTML report → review what's exposed → come back and hit `[2] Apply`.
 
+<img width="945" height="469" alt="image" src="https://github.com/user-attachments/assets/f55659a5-41ab-4c90-b2cb-66c122852035" />
+
 ---
 
 ## `>_ how it works`
@@ -197,7 +199,7 @@ Hand it to a customer. Attach it to a change management record. Run before/after
 
 > 📸 **Screenshot:**
 
-<img width="1443" height="771" alt="image" src="https://github.com/user-attachments/assets/53a22b0a-7446-4d6c-a336-4272f34bb403" />
+<img width="1315" height="879" alt="image" src="https://github.com/user-attachments/assets/8d8a342a-bc6a-4e3e-8bec-5213d099a08c" />
 
 ---
 
