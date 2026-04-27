@@ -61,6 +61,7 @@
       - Authenticode padding check Flame mitigation (SYS-013)
       - NTLM incoming traffic audit Event 8004 (SYS-014)
       - Disable NULL session fallback for LocalSystem (SYS-015)
+      - Self-unblock Zone.Identifier on startup (prevents PS-005 locking script)
 
 .PARAMETER Mode
     'Audit'  - Check settings, report only, no changes (default)
@@ -117,7 +118,7 @@
     ================================================================
     ZavetSec | https://github.com/zavetsec
     Script   : ZavetSec-Harden
-    Version  : 1.3
+    Version  : 1.4
     Author   : ZavetSec
     License  : MIT
     ================================================================
@@ -146,6 +147,29 @@ param(
     [switch]$EnablePrintSpoolerDisable,
     [switch]$NonInteractive  # Suppress all prompts (for PsExec/remote/scheduled task use)
 )
+
+# -------------------------------------------------------
+# Self-unblock: remove Zone.Identifier ADS if present.
+# PS-005 sets ExecutionPolicy=RemoteSigned via registry (GPO level).
+# Files downloaded from the internet carry a Zone.Identifier NTFS stream
+# that marks them as "untrusted remote" -- RemoteSigned then blocks them
+# even though they are physically local.
+# We strip the mark from this script file before any other code runs,
+# so subsequent re-launches work without -ExecutionPolicy Bypass.
+# This is safe: equivalent to right-click -> Properties -> Unblock in Explorer.
+# -------------------------------------------------------
+try {
+    $selfPath = $MyInvocation.MyCommand.Path
+    if ($selfPath -and (Test-Path $selfPath)) {
+        $zoneStream = Get-Item -Path $selfPath -Stream 'Zone.Identifier' -EA SilentlyContinue
+        if ($zoneStream) {
+            Remove-Item -Path $selfPath -Stream 'Zone.Identifier' -Force -EA SilentlyContinue
+            Write-Host "  [..] Zone.Identifier removed from script file (Unblock-File applied)." -ForegroundColor DarkGray
+        }
+    }
+} catch {
+    # Non-fatal -- NTFS ADS removal may fail on FAT32 / network shares; ignore silently
+}
 
 Set-StrictMode -Off
 $ErrorActionPreference = 'SilentlyContinue'
@@ -609,7 +633,7 @@ Write-Host '    |_  /__ ___ _____ ___ | |_ / __/__ ___     ' -ForegroundColor Cy
 Write-Host '     / // _` \ V / -_)  _||  _\__ \/ -_) _|    ' -ForegroundColor Cyan
 Write-Host '    /___\__,_|\_/\___\__| |_| |___/\___\__|    ' -ForegroundColor DarkCyan
 Write-Host ''
-Write-Host '    ZavetSec-Harden v1.3    ' -ForegroundColor White
+Write-Host '    ZavetSec-Harden v1.4    ' -ForegroundColor White
 Write-Host '    Windows Security Hardening Baseline' -ForegroundColor Gray
 Write-Host '    CIS Benchmark | DISA STIG | MS Security Baseline' -ForegroundColor DarkGray
 Write-Host '    https://github.com/zavetsec                 ' -ForegroundColor DarkGray
@@ -619,7 +643,7 @@ Write-Host ''
 # EARLY HEADER (admin check moved AFTER mode resolution)
 # -------------------------------------------------------
 Write-Host "  ============================================================" -ForegroundColor DarkCyan
-Write-Host "    Script : ZavetSec-Harden v1.3" -ForegroundColor Cyan
+Write-Host "    Script : ZavetSec-Harden v1.4" -ForegroundColor Cyan
 Write-Host "    Mode   : $(if ($Mode) { $Mode } else { '(interactive)' })" -ForegroundColor Gray
 Write-Host "    Host   : $env:COMPUTERNAME" -ForegroundColor Gray
 Write-Host "    Time   : $($global:StartTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor Gray
@@ -3179,7 +3203,7 @@ footer{
 
 <footer>
   <span style="color:#00ff88;font-weight:700;letter-spacing:2px">ZAVETSEC</span>
-  &nbsp;&bull;&nbsp; ZavetSec-Harden v1.3
+  &nbsp;&bull;&nbsp; ZavetSec-Harden v1.4
   &nbsp;&bull;&nbsp; github.com/zavetsec
   &nbsp;&bull;&nbsp; Host: $_compNameEnc
   &nbsp;&bull;&nbsp; Mode: $_modeEnc
