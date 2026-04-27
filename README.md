@@ -4,26 +4,24 @@
 [![Windows](https://img.shields.io/badge/Windows-10%2F11%20%7C%20Server%202016--2022-0078d4?style=flat-square&logo=windows)](https://microsoft.com/windows)
 [![CIS](https://img.shields.io/badge/Standard-CIS%20%7C%20DISA%20STIG%20%7C%20MS%20Baseline-00b4d8?style=flat-square)](https://cisecurity.org)
 [![License](https://img.shields.io/badge/License-MIT-30d158?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.2-ff6b00?style=flat-square)](#)
+[![Version](https://img.shields.io/badge/Version-1.4-ff6b00?style=flat-square)](#)
 
 **Windows ships with insecure defaults. This fixes them.**
 
-**One script. 60 checks. Four modes. Zero bloat.**
-
-### ⚡ Why use this
-
-✔ No install  
-✔ No internet required  
-✔ Works on any Windows 10/11/Server  
-✔ Safe to rollback  
-✔ Used in real-world environments: standalone hosts, lab fleets, and incident response
+**80+ security controls across Network · Credentials · Audit Policy · PowerShell · System. Four modes. Zero bloat.**
 
 ---
 
-> **Find and fix 60+ insecure Windows defaults that enable credential theft and lateral movement.**
-> Zero dependencies &nbsp;·&nbsp; No AD &nbsp;·&nbsp; Safe rollback &nbsp;·&nbsp; Self-contained HTML report
->
-> Settings derived from CIS Benchmark, DISA STIG, and Microsoft Security Baseline — **mapped and adapted** for standalone and offline environments.
+## `>_ in 30 seconds`
+
+```
+1. Run Audit          → HTML report, nothing changed
+2. Review findings    → see exactly what's exposed and why it matters
+3. Run Apply          → backup created first, every change verified
+4. Rollback if needed → one command, exact prior state restored
+```
+
+✔ No install &nbsp;·&nbsp; No internet &nbsp;·&nbsp; No AD &nbsp;·&nbsp; Works on any Windows 10/11/Server
 
 ---
 
@@ -34,11 +32,10 @@ LLMNR broadcasting credentials to anyone who asks, WDigest storing plaintext
 passwords in memory, SMBv1 waiting for EternalBlue, audit logs sized at 20 MB
 that fill in hours. These are not misconfigurations — **they are shipped this way, on every fresh install.**
 
-`ZavetSec-Harden` fixes this. It audits your current state, applies
-a hardened baseline aligned to **CIS Benchmark**, **DISA STIG**, and
-**Microsoft Security Baseline**, and generates an HTML report you can hand to
-a customer or attach to a ticket. If something breaks, rollback from the JSON
-backup created before every change.
+`ZavetSec-Harden` audits your current state, applies a hardened baseline aligned
+to **CIS Benchmark**, **DISA STIG**, and **Microsoft Security Baseline**, and generates
+an HTML report you can hand to a customer or attach to a ticket. Every change is
+backed up — rollback is one command.
 
 ---
 
@@ -79,6 +76,10 @@ Rollback → restore exact previous state
 ```
 
 ```
+Audit → Report → Apply → Verify → Rollback
+```
+
+```
   ┌─────────────────────────────────────────────────────────┐
   │                                                         │
   │   Audit mode        Read current state                  │
@@ -101,23 +102,39 @@ Rollback → restore exact previous state
 **Idempotent** — run Apply twice, result is identical.  
 **Non-destructive** — JSON backup before every change, full rollback available.  
 **Locale-independent** — audit policy uses GUIDs, works on any Windows language.  
-**PsExec-compatible** — `-NonInteractive` flag for remote/automated deployment.
+**PsExec-compatible** — `-NonInteractive` flag for remote/automated deployment.  
+**Self-unblocking** — automatically strips `Zone.Identifier` NTFS stream on startup so `RemoteSigned` policy doesn't block a freshly downloaded script.
+
+---
+
+## `>_ why operators keep this in their toolkit`
+
+- **Fast enough for IR** — Audit completes in under 30 seconds, no setup, no dependencies
+- **Safe enough for sysadmins** — nothing changes without a JSON backup; rollback is always available
+- **Offline enough for restricted environments** — zero internet, zero modules, single `.ps1` file
+- **Reversible enough for change control** — attach the HTML report to the ticket, rollback command pre-filled
 
 ---
 
 ## `>_ what attacks does this stop`
 
+Mapped to real attack paths, not generic hardening theory.
+
 | Threat | Impact | MITRE | Controls |
 |---|---|---|---|
-| 🔴 Responder / MITM | Credential capture over LAN | T1557.001 | LLMNR, NBT-NS, mDNS, WPAD disabled · SMB signing required |
-| 🔴 Mimikatz / LSASS dump | Plaintext passwords from memory | T1003.001 | WDigest off · LSA PPL on · Credential Guard enabled |
-| 🔴 Pass-the-Hash | Lateral movement without password | T1550.002 | NTLMv2 only · LM hash storage off · 128-bit session |
+| 🔴 Responder / MITM | Credential capture over LAN | T1557.001 | LLMNR, NBT-NS, mDNS, WPAD disabled · SMB signing required · Remote SAM restricted · Null-session pipes cleared |
+| 🔴 Mimikatz / LSASS dump | Plaintext passwords from memory | T1003.001 | WDigest off · LSA PPL on · Credential Guard enabled · SEHOP enabled |
+| 🔴 Pass-the-Hash | Lateral movement without password | T1550.002 | NTLMv2 only · LM hash off · 128-bit session · Remote Credential Guard for RDP |
 | 🔴 EternalBlue / WannaCry | Remote code execution, ransomware | T1210 | SMBv1 disabled — server and client driver |
-| 🟠 Lateral movement | Spread across the network | T1021 | Remote Registry off · anonymous enumeration restricted |
-| 🟠 Pre-auth RDP exploits | RCE before login prompt | T1021.001 | NLA enforced · encryption level high |
+| 🔴 CredSSP Oracle (CVE-2018-0886) | Credential theft via RDP pre-auth | T1557 | CredSSP patch enforcement (CRED-008) |
+| 🟠 Kerberos downgrade (RC4/DES) | Weak ticket encryption, offline cracking | T1558 | Kerberos AES-only enforced (CRED-009) |
+| 🟠 IP source routing / ICMP redirect | Traffic hijack, routing manipulation | T1090 | IP source routing disabled · ICMP redirects blocked |
+| 🟠 Lateral movement | Spread across the network | T1021 | Remote Registry off · anonymous enumeration restricted · Netlogon signed channel |
+| 🟠 Pre-auth RDP exploits | RCE before login prompt | T1021.001 | NLA enforced · encryption level high · Remote Credential Guard |
 | 🟠 USB payload delivery | Autorun from physical media | T1091 | AutoRun / AutoPlay disabled on all drive types |
 | 🟠 PowerShell abuse | LOLBin / fileless execution | T1059.001 | Script Block + Module logging · PSv2 disabled |
-| 🟡 Logging blind spot | Undetected attacker activity | — | Security log 1 GB · 29 audit subcategory checks |
+| 🟠 Flame / Authenticode spoofing | Code signing bypass | T1553.002 | Authenticode certificate padding check enabled |
+| 🟡 Logging blind spot | Undetected attacker activity | — | Security log 1 GB · 29 audit subcategories · cmdline in 4688 · NTLM audit 8004 |
 
 ---
 
@@ -135,8 +152,12 @@ Rollback → restore exact previous state
 - SMB signing client — **required**
 - Anonymous SAM/share enumeration — **blocked**
 - Remote Registry service — **disabled**
+- Remote SAM enumeration — **restricted to Administrators** (NET-011)
+- Null-session pipes and shares — **cleared** (NET-012)
+- IP source routing IPv4 + IPv6 — **disabled** (NET-013)
+- ICMP redirect acceptance — **disabled** (NET-014)
 
-`NET-001 — NET-010`
+`NET-001 — NET-014`
 
 ### 🔑 Credential protection
 - WDigest plaintext caching — **disabled**
@@ -145,8 +166,13 @@ Rollback → restore exact previous state
 - LAN Manager auth level — **NTLMv2 only** (LM/NTLMv1 refused)
 - LM hash storage — **disabled**
 - NTLM 128-bit session security — **enforced**
+- SEHOP exception chain validation — **enabled** (CRED-007)
+- CredSSP Oracle CVE-2018-0886 — **mitigated** (CRED-008)
+- Kerberos encryption — **AES only, RC4/DES disabled** (CRED-009)
+- Remote Credential Guard / Restricted Admin for RDP — **enabled** (CRED-010)
+- Netlogon secure channel — **signed and sealed, strong session key required** (CRED-011)
 
-`CRED-001 — CRED-006`
+`CRED-001 — CRED-011`
 
 ### 🐚 PowerShell hardening
 - Script Block Logging (4104) — **enabled**
@@ -158,12 +184,14 @@ Rollback → restore exact previous state
 `PS-001 — PS-005`
 
 ### 📋 Audit policy
-27 subcategories via `auditpol` with GUID references — locale-independent, works
-on any Windows language. Plus command-line capture in 4688, and
-`SCENoApplyLegacyAuditPolicy` to prevent GPO from silently overriding subcategory
-settings. Covers Logon/Logoff, Kerberos (TGT + TGS), Process Creation, Account
-Management, Object Access, Privilege Use, Policy Change, DPAPI, Scheduled Tasks,
+29 subcategories via `auditpol` with GUID references — locale-independent, works
+on any Windows language. Covers Logon/Logoff, Kerberos (TGT + TGS), Process Creation,
+Account Management, Object Access, Privilege Use, Policy Change, DPAPI, Scheduled Tasks,
 Removable Storage, Firewall events.
+
+Additional:
+- **AUD-028** — command line arguments captured in Event 4688 (process creation). Without this, LOLBins like `certutil`, `mshta`, `rundll32 -enc` are invisible to SIEM.
+- **AUD-029** — `SCENoApplyLegacyAuditPolicy` set to prevent GPO from silently overriding subcategory settings.
 
 `AUD-001 — AUD-029`
 
@@ -178,8 +206,11 @@ Removable Storage, Firewall events.
 - DNS-over-HTTPS policy — **enabled**
 - RDP encryption — **High** (MinEncryptionLevel=3)
 - Print Spooler disable — **opt-in** (PrintNightmare mitigation)
+- Authenticode certificate padding check — **enabled** (Flame mitigation, SYS-013)
+- NTLM incoming traffic — **audit enabled**, Event 8004 (SYS-014)
+- NULL session fallback for LocalSystem (MSV1_0) — **disabled** (SYS-015)
 
-`SYS-001 — SYS-010`
+`SYS-001 — SYS-015`
 
 ---
 
@@ -252,7 +283,7 @@ loops — nothing exits unexpectedly.
     [6]  Exchange / Mail   - skip network + credential sections (NTLM/SMB deps)
     [7]  Print Server      - Print Spooler preserved, skip Credential Guard
 
-    [8]  ALL               - apply all 60 checks, operator takes full responsibility
+    [8]  ALL               - apply all 80+ checks, operator takes full responsibility
 
     [0]  Back              - return to mode selection
 ```
@@ -346,12 +377,15 @@ a whole to avoid partial application.
 - **SMB signing required** — clients without signing support are rejected. Negligible in modern environments, check in legacy/mixed estates.
 - **Credential Guard** — requires UEFI + Secure Boot + VBS hardware. Skipped gracefully on incompatible machines.
 - **NTLMv2 only** — systems that only support LM/NTLMv1 fail authentication. Rare in IT, more common in OT/industrial environments.
+- **Kerberos AES-only (CRED-009)** — skipped automatically if domain controllers without AES support are detected. Pre-check runs before applying to avoid breaking Kerberos in the domain.
+- **Remote Credential Guard (CRED-010)** — requires Windows 10 1607+ / Server 2016+ on both ends. Older RDP targets will fall back to standard NLA.
 - **Print Spooler** (`-EnablePrintSpoolerDisable`) — printing stops entirely. Apply only to non-printing machines.
 - **PSv2 disable** — requires reboot. Automation calling `powershell -version 2` will break.
+- **Null-session pipes cleared (NET-012)** — some legacy monitoring or management tools may rely on null-session IPC. Verify before applying in legacy environments.
 
 **Reboot required for:** Credential Guard · DEP AlwaysOn · PSv2 disable · SMBv1 client driver.
 
-**Runtime:** Audit ~10–30 seconds. Apply ~20–60 seconds — most of that is the 27 `auditpol` subcategory calls. Tested via PsExec fan-out on lab fleet without issues.
+**Runtime:** Audit ~10–30 seconds. Apply ~20–60 seconds — most of that is the 29 `auditpol` subcategory calls. Tested via PsExec fan-out on lab fleet without issues.
 
 ---
 
@@ -455,25 +489,14 @@ ZavetSec-Harden.ps1
 
 ## `>_ part of the ZavetSec DFIR toolkit`
 
-`ZavetSec-Harden` is one module in the **ZavetSec** open-source SOC/DFIR
-toolkit — a collection of standalone PowerShell tools built for practitioners who
-work in real environments: mixed OS fleets, no internet, constrained budgets, and
-incidents that don't wait.
+`ZavetSec-Harden` is one module in the **ZavetSec** open-source SOC/DFIR toolkit —
+a collection of standalone PowerShell tools for practitioners working in real environments:
+mixed OS fleets, no internet, constrained budgets, incidents that don't wait.
 
-Every tool in the toolkit follows the same design contract:
-
-- **PS 5.1 only** — runs on anything from Server 2016 to Windows 11, no prerequisites
-- **Zero dependencies** — single script file, no modules to install, no internet required
-- **Self-contained HTML reports** — dark-themed, filterable, ready to attach to a ticket
-- **MITRE ATT&CK mapped** — findings tied to techniques, not just abstract recommendations
-- **PsExec / automation compatible** — `-NonInteractive` flag across all tools
-- **Reversible** — where changes are made, a rollback path always exists
-
-The toolkit covers the full incident response lifecycle: live triage and artifact
-collection, threat intel enrichment, network discovery and vulnerability surface
-mapping, lateral movement detection, credential exposure analysis, and hardening
-with compliance reporting. Tools are designed to be chained as a pipeline or
-used independently depending on what the engagement calls for.
+The toolkit covers the full IR lifecycle: live triage and artifact collection,
+threat intel enrichment, network discovery, lateral movement detection, credential
+exposure analysis, and hardening with compliance reporting. Tools chain as a pipeline
+or run independently.
 
 **→ [github.com/zavetsec](https://github.com/zavetsec)**
 
